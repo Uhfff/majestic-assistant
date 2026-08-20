@@ -223,7 +223,9 @@ public partial class MainWindow : Window
         }
         catch (Exception ex)
         {
-            Dispatcher.BeginInvoke(() => SetAnswerText($"Не получилось получить ответ: {ex.Message}"));
+            // Discarded: DispatcherOperation is awaitable (hence CS4014 without this), but there's
+            // nothing to await for — same fire-and-forget UI update as everywhere else in this file.
+            _ = Dispatcher.BeginInvoke(() => SetAnswerText($"Не получилось получить ответ: {ex.Message}"));
         }
     }
 
