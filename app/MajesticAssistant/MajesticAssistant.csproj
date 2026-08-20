@@ -15,6 +15,15 @@
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
+  <!-- UseWindowsForms implicitly adds a project-wide "global using System.Windows.Forms;", which
+       collides with WPF's identically-named types (Application, KeyEventArgs, MouseEventArgs, ...)
+       in every file, not just the one that actually needs NotifyIcon. Remove the implicit global
+       using; TrayIconService.cs already has its own local "using System.Windows.Forms;" and stays
+       the only file that can see those types. -->
+  <ItemGroup>
+    <Using Remove="System.Windows.Forms" />
+  </ItemGroup>
+
   <!-- Ships the markdown knowledge base (data/kb, one level up from the repo root) next to the
        exe as a "kb" folder, so RagService can find it at AppContext.BaseDirectory + "kb" without
        depending on the source tree being present on the machine that runs the built app. -->
