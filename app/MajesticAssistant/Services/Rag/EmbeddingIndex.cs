@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.IO;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -39,16 +40,41 @@ public sealed class EmbeddingIndex
         var cached = LoadCache(cachePath);
 
         var toEmbed = chunks.Where(c => !cached.ContainsKey(c.ChunkId)).ToList();
+        var total = toEmbed.Count;
         var done = 0;
-        onProgress?.Invoke(done, toEmbed.Count);
+        onProgress?.Invoke(done, total);
 
-        foreach (var chunk in toEmbed)
+        if (total > 0)
         {
-            ct.ThrowIfCancellationRequested();
-            var vector = await client.EmbedAsync(embedModel, BuildEmbeddingText(chunk), ct);
-            cached[chunk.ChunkId] = vector;
-            done++;
-            onProgress?.Invoke(done, toEmbed.Count);
+            // Embedding each chunk is one HTTP round-trip to Ollama; doing them one at a time on a
+            // cold cache (hundreds of chunks) spends most of the wall-clock time just waiting on
+            // network/request overhead rather than the model itself. Ollama can serve several
+            // embedding requests at once, so a small bounded parallelism cuts the one-time indexing
+            // time substantially without flooding it with hundreds of simultaneous requests.
+            const int maxConcurrency = 4;
+            using var gate = new SemaphoreSlim(maxConcurrency);
+            var results = new ConcurrentDictionary<string, float[]>();
+
+            var tasks = toEmbed.Select(async chunk =>
+            {
+                await gate.WaitAsync(ct);
+                try
+                {
+                    var vector = await client.EmbedAsync(embedModel, BuildEmbeddingText(chunk), ct);
+                    results[chunk.ChunkId] = vector;
+                }
+                finally
+                {
+                    gate.Release();
+                }
+
+                onProgress?.Invoke(Interlocked.Increment(ref done), total);
+            });
+
+            await Task.WhenAll(tasks);
+
+            foreach (var (chunkId, vector) in results)
+                cached[chunkId] = vector;
         }
 
         _entries.Clear();

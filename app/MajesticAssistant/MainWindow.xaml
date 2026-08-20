@@ -64,23 +64,8 @@
                                    HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </Border>
 
-                    <!-- "Majestic" rendered with a dotless-ı stem + a separately colored dot, so only
-                         the tittle is brand-red and the rest of the title stays white (see the
-                         dark-glass-ui skill note on why a plain red span was rejected). -->
-                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Margin="10,0,0,0">
-                        <TextBlock Text="Majest" Style="{StaticResource HeadingText}" FontSize="15"/>
-                        <Grid Width="7" Margin="0,-3,0,0">
-                            <Rectangle Width="2" Height="11" Fill="{StaticResource TextPrimaryBrush}"
-                                       HorizontalAlignment="Center" VerticalAlignment="Bottom"/>
-                            <Ellipse Width="5" Height="5" Fill="{StaticResource BrandGradientBrush}"
-                                     HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,1,0,0">
-                                <Ellipse.Effect>
-                                    <DropShadowEffect Color="#FF3B4E" Opacity="0.65" BlurRadius="6" ShadowDepth="0"/>
-                                </Ellipse.Effect>
-                            </Ellipse>
-                        </Grid>
-                        <TextBlock Text="c Assistant" Style="{StaticResource HeadingText}" FontSize="15"/>
-                    </StackPanel>
+                    <TextBlock Grid.Column="1" Text="Majestic Assistant" Style="{StaticResource HeadingText}"
+                               FontSize="15" VerticalAlignment="Center" Margin="10,0,0,0"/>
 
                     <Button Grid.Column="2" Content="✕" Click="CloseGlyph_Click"
                             ToolTip="Скрыть (Alt+Space)" Cursor="Hand"
@@ -103,6 +88,7 @@
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
 
                     <Grid Grid.Column="0" Margin="0,0,8,0">
@@ -124,7 +110,10 @@
                         </TextBlock>
                     </Grid>
 
-                    <Button Grid.Column="1" Style="{StaticResource SendButton}" Content="→"
+                    <Button x:Name="MicButton" Grid.Column="1" Style="{StaticResource MicButton}" Content="●"
+                            Click="MicButton_Click" ToolTip="Голосовой ввод" Margin="0,0,8,0"/>
+
+                    <Button Grid.Column="2" Style="{StaticResource SendButton}" Content="→"
                             Click="SendButton_Click"/>
                 </Grid>
 

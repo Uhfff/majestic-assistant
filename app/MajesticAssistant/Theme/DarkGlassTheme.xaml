@@ -186,6 +186,72 @@
         </Setter>
     </Style>
 
+    <!-- Round mic/voice-input button — same size and press/hover motion as SendButton, but a
+         neutral glass fill instead of the accent gradient since it's a secondary action.
+         MainWindow.xaml.cs toggles Content ("●" idle / "■" recording) and Background directly. -->
+    <Style x:Key="MicButton" TargetType="Button">
+        <Setter Property="Width" Value="38"/>
+        <Setter Property="Height" Value="38"/>
+        <Setter Property="Background" Value="{StaticResource FieldFillBrush}"/>
+        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+        <Setter Property="FontWeight" Value="Bold"/>
+        <Setter Property="FontSize" Value="13"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="Bg" Background="{TemplateBinding Background}" CornerRadius="12"
+                            BorderBrush="{StaticResource BorderGlassBrush}" BorderThickness="1">
+                        <Border.RenderTransform>
+                            <ScaleTransform x:Name="ScaleT" ScaleX="1" ScaleY="1"/>
+                        </Border.RenderTransform>
+                        <Border.RenderTransformOrigin>0.5,0.5</Border.RenderTransformOrigin>
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"
+                                           TextElement.Foreground="{TemplateBinding Foreground}"/>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Trigger.EnterActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="ScaleT" Storyboard.TargetProperty="ScaleX" To="1.06" Duration="0:0:0.18"/>
+                                        <DoubleAnimation Storyboard.TargetName="ScaleT" Storyboard.TargetProperty="ScaleY" To="1.06" Duration="0:0:0.18"/>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.EnterActions>
+                            <Trigger.ExitActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="ScaleT" Storyboard.TargetProperty="ScaleX" To="1" Duration="0:0:0.18"/>
+                                        <DoubleAnimation Storyboard.TargetName="ScaleT" Storyboard.TargetProperty="ScaleY" To="1" Duration="0:0:0.18"/>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.ExitActions>
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Trigger.EnterActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="ScaleT" Storyboard.TargetProperty="ScaleX" To="0.94" Duration="0"/>
+                                        <DoubleAnimation Storyboard.TargetName="ScaleT" Storyboard.TargetProperty="ScaleY" To="0.94" Duration="0"/>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.EnterActions>
+                            <Trigger.ExitActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="ScaleT" Storyboard.TargetProperty="ScaleX" To="1" Duration="0"/>
+                                        <DoubleAnimation Storyboard.TargetName="ScaleT" Storyboard.TargetProperty="ScaleY" To="1" Duration="0"/>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.ExitActions>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
     <!-- kbd-style hotkey chip -->
     <Style x:Key="KbdChip" TargetType="Border">
         <Setter Property="Background" Value="#1AFFFFFF"/>

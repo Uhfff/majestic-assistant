@@ -34,4 +34,25 @@
     </Content>
   </ItemGroup>
 
+  <!-- Copies a locally-downloaded whisper.cpp GGML model (see README — not committed to git, it's
+       a multi-hundred-MB binary) into the build output next to the exe, same pattern as data/kb.
+       Matches zero files (harmlessly) until whisper/*.bin actually exists on disk. -->
+  <ItemGroup>
+    <Content Include="whisper\**\*.bin">
+      <Link>whisper\%(RecursiveDir)%(Filename)%(Extension)</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <!-- NAudio records the microphone to a WAV file; Whisper.net is the .NET binding for whisper.cpp
+       (native CPU runtime pulled in by Whisper.net.Runtime) that transcribes it — both run fully
+       locally, no cloud speech API, matching the rest of the app. The GGML model itself is NOT a
+       NuGet package (same convention as Ollama's models): it's a separate multi-hundred-MB
+       download the user places under whisper/ next to the exe — see the README. -->
+  <ItemGroup>
+    <PackageReference Include="NAudio" Version="2.2.1" />
+    <PackageReference Include="Whisper.net" Version="1.9.1" />
+    <PackageReference Include="Whisper.net.Runtime" Version="1.9.1" />
+  </ItemGroup>
+
 </Project>

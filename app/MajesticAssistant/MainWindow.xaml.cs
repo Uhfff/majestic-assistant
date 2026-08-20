@@ -8,6 +8,7 @@ using System.Windows.Media.Animation;
 using MajesticAssistant.Models;
 using MajesticAssistant.Services;
 using MajesticAssistant.Services.Rag;
+using MajesticAssistant.Services.Voice;
 
 namespace MajesticAssistant;
 
@@ -16,11 +17,13 @@ public partial class MainWindow : Window
     private readonly HotkeyService _hotkey = new();
     private readonly RagService _rag;
     private readonly TrayIconService _tray;
+    private readonly VoiceInputService _voice;
     private readonly string _settingsPath;
     private readonly AppSettings _settings;
 
     private CancellationTokenSource? _askCts;
     private bool _kbReady;
+    private bool _isRecording;
 
     public MainWindow()
     {
@@ -66,6 +69,10 @@ public partial class MainWindow : Window
         // Этап 1-3 "right-click the header" placeholder.
         _tray = new TrayIconService(onToggle: Toggle, onExit: () => Application.Current.Shutdown());
 
+        _voice = new VoiceInputService(
+            modelPath: Path.Combine(baseDir, "whisper", "ggml-small.bin"),
+            tempWavPath: Path.Combine(baseDir, "cache", "voice-input.wav"));
+
         // Application.Shutdown() closes every tracked window (raising Closed) regardless of
         // ShutdownMode, so this fires whether the user quits via the tray menu or Alt+F4 ever
         // reaches this window — one place to release the hotkey/tray and persist the window spot.
@@ -73,6 +80,7 @@ public partial class MainWindow : Window
         {
             _hotkey.Dispose();
             _tray.Dispose();
+            _voice.Dispose();
             SaveSettings();
         };
 
@@ -168,6 +176,49 @@ public partial class MainWindow : Window
     }
 
     private void SendButton_Click(object sender, RoutedEventArgs e) => SubmitQuery();
+
+    private async void MicButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (!_isRecording)
+        {
+            try
+            {
+                _voice.StartRecording();
+            }
+            catch (Exception ex)
+            {
+                SetAnswerText(ex.Message);
+                return;
+            }
+
+            _isRecording = true;
+            MicButton.Content = "■";
+            MicButton.ToolTip = "Остановить запись";
+            return;
+        }
+
+        _isRecording = false;
+        MicButton.Content = "●";
+        MicButton.ToolTip = "Голосовой ввод";
+        MicButton.IsEnabled = false;
+        SetAnswerText("Распознаю голос…");
+
+        try
+        {
+            var text = await _voice.StopRecordingAndTranscribeAsync();
+            QueryInput.Text = text;
+            QueryInput.CaretIndex = text.Length;
+            SetAnswerText(_kbReady ? "Готов отвечать на вопросы по правилам сервера." : "");
+        }
+        catch (Exception ex)
+        {
+            SetAnswerText($"Не получилось распознать речь: {ex.Message}");
+        }
+        finally
+        {
+            MicButton.IsEnabled = true;
+        }
+    }
 
     private void SubmitQuery()
     {

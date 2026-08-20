@@ -6,6 +6,9 @@ obj/
 app/MajesticAssistant/cache/
 app/MajesticAssistant/settings.json
 
+# Downloaded manually (multi-hundred-MB GGML model for voice input) — see README
+app/MajesticAssistant/whisper/
+
 # IDE
 .vs/
 *.user
