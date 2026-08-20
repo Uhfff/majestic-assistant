@@ -25,6 +25,14 @@
             <DoubleAnimation Storyboard.TargetName="RootPanel" Storyboard.TargetProperty="Opacity"
                               From="0" To="1" Duration="{StaticResource DurationSlow}"/>
         </Storyboard>
+
+        <!-- Shown while waiting on Ollama (embedding the question + generating the first token) —
+             streaming itself already reads as "alive", but the gap before any text arrives had no
+             feedback at all, which is what actually read as "too slow". -->
+        <Storyboard x:Key="ThinkingPulse" RepeatBehavior="Forever" AutoReverse="True">
+            <DoubleAnimation Storyboard.TargetName="ThinkingDot" Storyboard.TargetProperty="Opacity"
+                              From="1" To="0.25" Duration="0:0:0.6"/>
+        </Storyboard>
     </Window.Resources>
 
     <Grid Margin="12" RenderTransformOrigin="0.5,0.5">
@@ -117,11 +125,22 @@
                             Click="SendButton_Click"/>
                 </Grid>
 
-                <!-- ===== Answer area (placeholder — wired up to the RAG engine in a later stage) ===== -->
+                <!-- ===== Answer area ===== -->
                 <Border x:Name="AnswerPanel" Style="{StaticResource GlassChip}" Padding="14,12">
-                    <TextBlock x:Name="AnswerText" Style="{StaticResource BodyText}" FontSize="13"
-                               TextWrapping="Wrap" LineHeight="20"
-                               Text="Здесь появится ответ ассистента. Поиск по базе знаний ещё не подключён — это только каркас интерфейса."/>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <Ellipse x:Name="ThinkingDot" Grid.Column="0" Width="8" Height="8"
+                                 Margin="0,4,8,0" VerticalAlignment="Top" Visibility="Collapsed"
+                                 Fill="{StaticResource TextBlueBrush}"/>
+
+                        <TextBlock x:Name="AnswerText" Grid.Column="1" Style="{StaticResource BodyText}" FontSize="13"
+                                   TextWrapping="Wrap" LineHeight="20"
+                                   Text="Здесь появится ответ ассистента."/>
+                    </Grid>
                 </Border>
 
                 <!-- ===== Footer hint ===== -->

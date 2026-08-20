@@ -1,4 +1,5 @@
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using MajesticAssistant.Models;
 
@@ -24,6 +25,36 @@ public sealed class RagService
     public string ChatModel { get; set; } = "qwen2.5:7b";
 
     public bool IsReady { get; private set; }
+
+    /// <summary>
+    /// Players abbreviate document names when citing an article ("15.2 УК", "п.3 ПК") — cosine
+    /// similarity alone often can't tell those short, number-heavy questions apart from an
+    /// identically-numbered clause in a completely different document (e.g. a "15.2" clause in the
+    /// EMS statute outscoring the real "15.2 УК" match). <see cref="RerankByTitleHints"/> gives a
+    /// flat score boost to candidates whose title matches a recognized abbreviation, which is
+    /// enough to break that kind of near-tie without overriding a genuinely stronger semantic match
+    /// for questions that don't mention any of these.
+    /// </summary>
+    private static readonly (string Abbreviation, string TitleHint)[] KnownAbbreviations =
+    {
+        ("УК", "Уголовный кодекс"),
+        ("АК", "Административный кодекс"),
+        ("ДК", "Дорожный кодекс"),
+        ("ЭК", "Этический кодекс"),
+        ("ТК", "Трудовой кодекс"),
+        ("ПК", "Процессуальный кодекс"),
+        ("ИК", "Избирательный кодекс"),
+        ("ЛСПД", "LSPD"),
+        ("LSPD", "LSPD"),
+        ("ЕМС", "Emergency Medical Service"),
+        ("EMS", "Emergency Medical Service"),
+        ("САНГ", "San Andreas National Guard"),
+        ("SANG", "San Andreas National Guard"),
+        ("ФИБ", "Federal Investigation Bureau"),
+        ("FIB", "Federal Investigation Bureau"),
+    };
+
+    private const double AbbreviationBoost = 0.15;
 
     public RagService(string kbRoot, string cachePath, string baseUrl = "http://localhost:11434")
     {
@@ -70,7 +101,11 @@ public sealed class RagService
             throw new InvalidOperationException("RagService.InitializeAsync must complete before AskAsync.");
 
         var queryVector = await _ollama.EmbedAsync(EmbedModel, question, ct);
-        var matches = _index.Search(queryVector, topK);
+
+        // Pull a wider candidate pool than we'll actually use — the reranking step below needs
+        // room to pull a correctly-titled chunk up from, say, 9th place into the final top K.
+        var candidates = _index.Search(queryVector, topK * 4);
+        var matches = RerankByTitleHints(question, candidates).Take(topK).ToList();
 
         if (matches.Count == 0 || matches[0].Score < 0.2)
         {
@@ -81,6 +116,24 @@ public sealed class RagService
 
         var prompt = BuildPrompt(question, matches);
         await _ollama.GenerateStreamingAsync(ChatModel, prompt, onToken, ct);
+    }
+
+    private static IEnumerable<(KnowledgeChunk Chunk, double Score)> RerankByTitleHints(
+        string question, IReadOnlyList<(KnowledgeChunk Chunk, double Score)> candidates)
+    {
+        var hints = KnownAbbreviations
+            .Where(a => Regex.IsMatch(question, $@"\b{Regex.Escape(a.Abbreviation)}\b", RegexOptions.IgnoreCase))
+            .Select(a => a.TitleHint)
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+        if (hints.Count == 0)
+            return candidates;
+
+        return candidates
+            .Select(m => hints.Any(h => m.Chunk.Title.Contains(h, StringComparison.OrdinalIgnoreCase))
+                ? (m.Chunk, Score: m.Score + AbbreviationBoost)
+                : m)
+            .OrderByDescending(m => m.Score);
     }
 
     private static string BuildPrompt(string question, IReadOnlyList<(KnowledgeChunk Chunk, double Score)> matches)

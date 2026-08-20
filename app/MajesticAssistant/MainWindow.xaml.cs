@@ -244,9 +244,26 @@ public partial class MainWindow : Window
         var ct = _askCts.Token;
 
         QueryInput.Clear();
-        SetAnswerText("");
+        StartThinking();
 
         _ = RunAskAsync(question, ct);
+    }
+
+    /// <summary>Embedding the question and waiting for the model's first token can take a
+    /// noticeable moment with no output at all otherwise — this pulsing dot is the only feedback
+    /// that anything is happening during that gap (streaming itself already reads as "alive" once
+    /// text starts arriving).</summary>
+    private void StartThinking()
+    {
+        SetAnswerText("Думаю…");
+        ThinkingDot.Visibility = Visibility.Visible;
+        ((Storyboard)FindResource("ThinkingPulse")).Begin(this, true);
+    }
+
+    private void StopThinking()
+    {
+        ThinkingDot.Visibility = Visibility.Collapsed;
+        ((Storyboard)FindResource("ThinkingPulse")).Stop(this);
     }
 
     private async Task RunAskAsync(string question, CancellationToken ct)
@@ -263,6 +280,7 @@ public partial class MainWindow : Window
                 {
                     if (isFirst[0])
                     {
+                        StopThinking();
                         AnswerText.Text = token;
                         isFirst[0] = false;
                     }
@@ -282,6 +300,12 @@ public partial class MainWindow : Window
             // Discarded: DispatcherOperation is awaitable (hence CS4014 without this), but there's
             // nothing to await for — same fire-and-forget UI update as everywhere else in this file.
             _ = Dispatcher.BeginInvoke(() => SetAnswerText($"Не получилось получить ответ: {ex.Message}"));
+        }
+        finally
+        {
+            // Safety net for the error/cancel paths above, where no token (and so no StopThinking
+            // call) ever arrived — harmless no-op if StopThinking already ran on the happy path.
+            _ = Dispatcher.BeginInvoke(StopThinking);
         }
     }
 
