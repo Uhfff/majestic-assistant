@@ -22,4 +22,9 @@ public sealed class AppSettings
     /// <summary>Overrides <see cref="Services.Rag.RagService.ChatModel"/> when set; null keeps the built-in default.</summary>
     [JsonPropertyName("chatModel")]
     public string? ChatModel { get; set; }
+
+    /// <summary>Filename (not a full path) of the whisper.cpp GGML model under whisper/, e.g.
+    /// "ggml-medium.bin". Null keeps the built-in default of "ggml-small.bin" — see README.</summary>
+    [JsonPropertyName("whisperModel")]
+    public string? WhisperModel { get; set; }
 }

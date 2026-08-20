@@ -69,8 +69,13 @@ public partial class MainWindow : Window
         // Этап 1-3 "right-click the header" placeholder.
         _tray = new TrayIconService(onToggle: Toggle, onExit: () => Application.Current.Shutdown());
 
+        // Whichever GGML file the user actually downloaded (see README) — settings.json lets them
+        // point at ggml-medium.bin etc. without renaming the file to match a hardcoded default.
+        var whisperModelFile = string.IsNullOrWhiteSpace(_settings.WhisperModel)
+            ? "ggml-small.bin"
+            : _settings.WhisperModel;
         _voice = new VoiceInputService(
-            modelPath: Path.Combine(baseDir, "whisper", "ggml-small.bin"),
+            modelPath: Path.Combine(baseDir, "whisper", whisperModelFile),
             tempWavPath: Path.Combine(baseDir, "cache", "voice-input.wav"));
 
         // Application.Shutdown() closes every tracked window (raising Closed) regardless of

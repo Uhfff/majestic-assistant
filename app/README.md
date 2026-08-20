@@ -29,8 +29,10 @@
      [huggingface.co/ggerganov/whisper.cpp/tree/main](https://huggingface.co/ggerganov/whisper.cpp/tree/main).
      Если распознавание будет слишком медленным — можно заменить на `ggml-base.bin` (быстрее,
      чуть хуже точность) или `ggml-medium.bin` (медленнее, точнее).
-  2. Положи файл в `app/MajesticAssistant/whisper/ggml-small.bin` (папка `whisper/` рядом с exe
-     после сборки — как `kb/` и `cache/`).
+  2. Положи файл в `app/MajesticAssistant/whisper/` (папка рядом с exe после сборки — как `kb/` и
+     `cache/`). По умолчанию приложение ищет `ggml-small.bin` — если скачал другой размер
+     (`ggml-medium.bin` и т.д.), укажи точное имя файла в `settings.json` → `whisperModel` (см.
+     ниже, раздел «Смена модели без правки кода»).
   3. Микрофон в Windows должен быть разрешён для приложений (Параметры → Конфиденциальность →
      Микрофон).
 
@@ -112,13 +114,19 @@ F5.
   "windowLeft": 1500.0,
   "windowTop": 28.0,
   "embedModel": "nomic-embed-text",
-  "chatModel": "qwen2.5:3b"
+  "chatModel": "qwen2.5:3b",
+  "whisperModel": "ggml-medium.bin"
 }
 ```
 
 `embedModel`/`chatModel` можно оставить `null` — тогда используются значения по умолчанию из
 `RagService.cs`. `windowLeft`/`windowTop` перезаписываются автоматически при каждом выходе —
 трогать их вручную не обязательно.
+
+`whisperModel` — это **имя файла** (не путь) внутри папки `whisper/`, для модели голосового
+ввода. Если скачал не `ggml-small.bin` (по умолчанию), а, например, `ggml-medium.bin` — впиши
+сюда точное имя файла, иначе приложение будет искать `ggml-small.bin` и не найдёт его, даже
+если рядом лежит `ggml-medium.bin`.
 
 ## Структура проекта
 
