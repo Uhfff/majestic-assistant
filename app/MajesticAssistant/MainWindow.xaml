@@ -108,7 +108,7 @@
                     <Grid Grid.Column="0" Margin="0,0,8,0">
                         <TextBox x:Name="QueryInput" Style="{StaticResource QueryTextBox}"
                                  AcceptsReturn="False" KeyDown="QueryInput_KeyDown"/>
-                        <TextBlock Text="Спросите про правила сервера…" Style="{StaticResource MetaText}"
+                        <TextBlock Text="Спросите про правила сервера…"
                                    FontWeight="SemiBold" IsHitTestVisible="False"
                                    Margin="12,0,0,0" VerticalAlignment="Center">
                             <TextBlock.Style>

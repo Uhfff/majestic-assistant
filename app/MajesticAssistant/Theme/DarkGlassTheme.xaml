@@ -157,9 +157,28 @@
                                 </BeginStoryboard>
                             </Trigger.ExitActions>
                         </Trigger>
+                        <!-- Setter.TargetName only resolves FrameworkElement/FrameworkContentElement
+                             targets, and ScaleTransform isn't one — an instant (zero-duration)
+                             storyboard is the correct way to snap a transform's property from a
+                             template trigger, same mechanism the IsMouseOver trigger above already
+                             uses for its (animated) hover scale. -->
                         <Trigger Property="IsPressed" Value="True">
-                            <Setter TargetName="ScaleT" Property="ScaleX" Value="0.94"/>
-                            <Setter TargetName="ScaleT" Property="ScaleY" Value="0.94"/>
+                            <Trigger.EnterActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="ScaleT" Storyboard.TargetProperty="ScaleX" To="0.94" Duration="0"/>
+                                        <DoubleAnimation Storyboard.TargetName="ScaleT" Storyboard.TargetProperty="ScaleY" To="0.94" Duration="0"/>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.EnterActions>
+                            <Trigger.ExitActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="ScaleT" Storyboard.TargetProperty="ScaleX" To="1" Duration="0"/>
+                                        <DoubleAnimation Storyboard.TargetName="ScaleT" Storyboard.TargetProperty="ScaleY" To="1" Duration="0"/>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.ExitActions>
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
