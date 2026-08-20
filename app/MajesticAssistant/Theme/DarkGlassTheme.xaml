@@ -1,0 +1,179 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- ===== Color tokens (from the dark-glass-ui skill) ===== -->
+    <Color x:Key="BgBaseColor">#0B1229</Color>
+    <Color x:Key="BgElevatedColor">#1A2550</Color>
+    <Color x:Key="AccentPrimaryColor">#3B6FE0</Color>
+    <Color x:Key="AccentGlowColor">#6E9BFF</Color>
+    <Color x:Key="TextPrimaryColor">#F5F8FF</Color>
+    <Color x:Key="TextBlueColor">#7FD8FF</Color>
+    <Color x:Key="BrandRedColor">#FF3B4E</Color>
+    <Color x:Key="BrandRedLightColor">#FF6A7A</Color>
+
+    <SolidColorBrush x:Key="BgBaseBrush" Color="{StaticResource BgBaseColor}"/>
+    <SolidColorBrush x:Key="TextPrimaryBrush" Color="{StaticResource TextPrimaryColor}"/>
+    <SolidColorBrush x:Key="TextBlueBrush" Color="{StaticResource TextBlueColor}"/>
+    <SolidColorBrush x:Key="TextBlueMutedBrush" Color="#BF7FD8FF"/>
+    <!-- ~75% opacity variant of TextBlue, used for secondary/meta text -->
+    <SolidColorBrush x:Key="BorderGlassBrush" Color="#2EFFFFFF"/>
+    <!-- rgba(255,255,255,0.18) -->
+    <SolidColorBrush x:Key="FieldFillBrush" Color="#14FFFFFF"/>
+    <!-- rgba(255,255,255,0.08) — shared fill for every nested "chip" (input, answer box, etc.) -->
+
+    <LinearGradientBrush x:Key="AccentGradientBrush" StartPoint="0.15,0" EndPoint="0.85,1">
+        <GradientStop Color="{StaticResource AccentGlowColor}" Offset="0"/>
+        <GradientStop Color="{StaticResource AccentPrimaryColor}" Offset="1"/>
+    </LinearGradientBrush>
+
+    <LinearGradientBrush x:Key="BrandGradientBrush" StartPoint="0.15,0" EndPoint="0.85,1">
+        <GradientStop Color="{StaticResource BrandRedLightColor}" Offset="0"/>
+        <GradientStop Color="{StaticResource BrandRedColor}" Offset="1"/>
+    </LinearGradientBrush>
+
+    <!-- Glass surface base fill: subtle top-light gradient over the elevated navy, left translucent
+         on purpose so it reads through blurred game content behind the overlay -->
+    <LinearGradientBrush x:Key="GlassSurfaceBrush" StartPoint="0,0" EndPoint="0,1">
+        <GradientStop Color="#24FFFFFF" Offset="0"/>
+        <GradientStop Color="#08FFFFFF" Offset="0.4"/>
+        <GradientStop Color="#001A2550" Offset="1"/>
+    </LinearGradientBrush>
+
+    <!-- ===== Motion tokens ===== -->
+    <!-- WPF has no literal cubic-bezier(0.22,1,0.36,1); CubicEase/EaseOut is the closest built-in match -->
+    <CubicEase x:Key="EaseSmooth" EasingMode="EaseOut"/>
+    <Duration x:Key="DurationFast">0:0:0.15</Duration>
+    <Duration x:Key="DurationBase">0:0:0.25</Duration>
+    <Duration x:Key="DurationSlow">0:0:0.4</Duration>
+
+    <!-- ===== Fonts ===== -->
+    <FontFamily x:Key="UiFont">Segoe UI Variable, Segoe UI</FontFamily>
+    <FontFamily x:Key="MonoFont">Cascadia Code, Consolas</FontFamily>
+
+    <!-- ===== Ambient drop shadow used behind every glass panel ===== -->
+    <DropShadowEffect x:Key="AmbientShadow" Color="Black" Opacity="0.5" BlurRadius="32" ShadowDepth="8" Direction="270"/>
+
+    <!-- ===== Glass panel style =====
+         Recipe: translucent gradient fill + backdrop-blur stand-in (WPF has no true backdrop-filter,
+         so the panel background itself carries the translucency — see Theme notes in the skill) +
+         curved inner-shadow read via the ambient DropShadowEffect + a 1px bright top rim (Border). -->
+    <Style x:Key="GlassPanel" TargetType="Border">
+        <Setter Property="Background" Value="{StaticResource GlassSurfaceBrush}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource BorderGlassBrush}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="CornerRadius" Value="20"/>
+        <Setter Property="Effect" Value="{StaticResource AmbientShadow}"/>
+    </Style>
+
+    <!-- Every nested "chip" inside a glass panel (input fields, answer box) shares one light fill -->
+    <Style x:Key="GlassChip" TargetType="Border">
+        <Setter Property="Background" Value="{StaticResource FieldFillBrush}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource BorderGlassBrush}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="CornerRadius" Value="13"/>
+    </Style>
+
+    <!-- ===== Typography ===== -->
+    <Style x:Key="BodyText" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="{StaticResource UiFont}"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+    </Style>
+
+    <Style x:Key="HeadingText" TargetType="TextBlock" BasedOn="{StaticResource BodyText}">
+        <Setter Property="FontWeight" Value="Bold"/>
+    </Style>
+
+    <Style x:Key="MetaText" TargetType="TextBlock" BasedOn="{StaticResource BodyText}">
+        <Setter Property="Foreground" Value="{StaticResource TextBlueMutedBrush}"/>
+        <Setter Property="FontSize" Value="11"/>
+    </Style>
+
+    <!-- ===== Placeholder-aware text input, styled as a GlassChip ===== -->
+    <Style x:Key="QueryTextBox" TargetType="TextBox">
+        <Setter Property="Background" Value="{StaticResource FieldFillBrush}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource BorderGlassBrush}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+        <Setter Property="CaretBrush" Value="{StaticResource TextPrimaryBrush}"/>
+        <Setter Property="FontFamily" Value="{StaticResource UiFont}"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="FontSize" Value="13"/>
+        <Setter Property="Padding" Value="11,8"/>
+        <Setter Property="VerticalContentAlignment" Value="Center"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="TextBox">
+                    <Border Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="13">
+                        <ScrollViewer x:Name="PART_ContentHost" Margin="{TemplateBinding Padding}"
+                                      VerticalAlignment="Center"/>
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- Round accent "send" button -->
+    <Style x:Key="SendButton" TargetType="Button">
+        <Setter Property="Width" Value="38"/>
+        <Setter Property="Height" Value="38"/>
+        <Setter Property="Background" Value="{StaticResource AccentGradientBrush}"/>
+        <Setter Property="Foreground" Value="White"/>
+        <Setter Property="FontWeight" Value="Bold"/>
+        <Setter Property="FontSize" Value="16"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="Bg" Background="{TemplateBinding Background}" CornerRadius="12">
+                        <Border.Effect>
+                            <DropShadowEffect Color="#3B6FE0" Opacity="0.5" BlurRadius="16" ShadowDepth="3"/>
+                        </Border.Effect>
+                        <Border.RenderTransform>
+                            <ScaleTransform x:Name="ScaleT" ScaleX="1" ScaleY="1"/>
+                        </Border.RenderTransform>
+                        <Border.RenderTransformOrigin>0.5,0.5</Border.RenderTransformOrigin>
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Trigger.EnterActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="ScaleT" Storyboard.TargetProperty="ScaleX" To="1.06" Duration="0:0:0.18"/>
+                                        <DoubleAnimation Storyboard.TargetName="ScaleT" Storyboard.TargetProperty="ScaleY" To="1.06" Duration="0:0:0.18"/>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.EnterActions>
+                            <Trigger.ExitActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="ScaleT" Storyboard.TargetProperty="ScaleX" To="1" Duration="0:0:0.18"/>
+                                        <DoubleAnimation Storyboard.TargetName="ScaleT" Storyboard.TargetProperty="ScaleY" To="1" Duration="0:0:0.18"/>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.ExitActions>
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter TargetName="ScaleT" Property="ScaleX" Value="0.94"/>
+                            <Setter TargetName="ScaleT" Property="ScaleY" Value="0.94"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- kbd-style hotkey chip -->
+    <Style x:Key="KbdChip" TargetType="Border">
+        <Setter Property="Background" Value="#1AFFFFFF"/>
+        <Setter Property="BorderBrush" Value="{StaticResource BorderGlassBrush}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="CornerRadius" Value="5"/>
+        <Setter Property="Padding" Value="5,2"/>
+    </Style>
+
+</ResourceDictionary>

@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <UseWPF>true</UseWPF>
+    <!-- Needed for System.Windows.Forms.NotifyIcon — WPF has no tray-icon API of its own, and
+         NotifyIcon is the standard way to host one, isolated to Services/TrayIconService.cs so it
+         never collides with WPF's own (differently-named) types elsewhere in the project. -->
+    <UseWindowsForms>true</UseWindowsForms>
+    <RootNamespace>MajesticAssistant</RootNamespace>
+    <AssemblyName>MajesticAssistant</AssemblyName>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <!-- Ships the markdown knowledge base (data/kb, one level up from the repo root) next to the
+       exe as a "kb" folder, so RagService can find it at AppContext.BaseDirectory + "kb" without
+       depending on the source tree being present on the machine that runs the built app. -->
+  <ItemGroup>
+    <Content Include="..\..\data\kb\**\*.md">
+      <Link>kb\%(RecursiveDir)%(Filename)%(Extension)</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+</Project>

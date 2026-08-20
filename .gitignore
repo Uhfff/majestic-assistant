@@ -1,0 +1,11 @@
+# .NET build output
+bin/
+obj/
+
+# Runtime-generated, machine-specific — not part of the source
+app/MajesticAssistant/cache/
+app/MajesticAssistant/settings.json
+
+# IDE
+.vs/
+*.user

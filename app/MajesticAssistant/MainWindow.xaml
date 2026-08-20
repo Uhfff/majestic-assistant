@@ -1,0 +1,153 @@
+<Window x:Class="MajesticAssistant.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Majestic Assistant"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Background="Transparent"
+        Topmost="True"
+        ShowInTaskbar="False"
+        ResizeMode="NoResize"
+        SizeToContent="Height"
+        Width="336"
+        WindowStartupLocation="Manual"
+        Deactivated="Window_Deactivated"
+        KeyDown="Window_KeyDown">
+
+    <Window.Resources>
+        <Storyboard x:Key="EnterAnimation">
+            <DoubleAnimation Storyboard.TargetName="RootScale" Storyboard.TargetProperty="ScaleX"
+                              From="0.98" To="1" Duration="{StaticResource DurationSlow}" EasingFunction="{StaticResource EaseSmooth}"/>
+            <DoubleAnimation Storyboard.TargetName="RootScale" Storyboard.TargetProperty="ScaleY"
+                              From="0.98" To="1" Duration="{StaticResource DurationSlow}" EasingFunction="{StaticResource EaseSmooth}"/>
+            <DoubleAnimation Storyboard.TargetName="RootTranslate" Storyboard.TargetProperty="Y"
+                              From="-8" To="0" Duration="{StaticResource DurationSlow}" EasingFunction="{StaticResource EaseSmooth}"/>
+            <DoubleAnimation Storyboard.TargetName="RootPanel" Storyboard.TargetProperty="Opacity"
+                              From="0" To="1" Duration="{StaticResource DurationSlow}"/>
+        </Storyboard>
+    </Window.Resources>
+
+    <Grid Margin="12" RenderTransformOrigin="0.5,0.5">
+        <Grid.RenderTransform>
+            <TransformGroup>
+                <ScaleTransform x:Name="RootScale" ScaleX="1" ScaleY="1"/>
+                <TranslateTransform x:Name="RootTranslate" Y="0"/>
+            </TransformGroup>
+        </Grid.RenderTransform>
+
+        <Border x:Name="RootPanel" Style="{StaticResource GlassPanel}" Padding="20,18"
+                MouseLeftButtonDown="Panel_MouseLeftButtonDown">
+            <StackPanel>
+
+                <!-- Квиз-вкладка временно убрана из UI (может вернуться отдельным обновлением,
+                     когда под неё будет готова база вопросов) — сейчас панель показывает только
+                     ассистента, без переключателя вкладок. -->
+                <Border Margin="0,0,0,14" Background="#14FFFFFF" CornerRadius="10" Padding="0,7">
+                    <TextBlock Text="Ассистент" Style="{StaticResource BodyText}" FontSize="12"
+                               HorizontalAlignment="Center" Foreground="{StaticResource TextPrimaryBrush}"/>
+                </Border>
+
+                <!-- ===== Header: brand badge + title ===== -->
+                <Grid Margin="0,0,0,14">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <Border Grid.Column="0" Width="30" Height="30" CornerRadius="9"
+                            Background="{StaticResource BrandGradientBrush}" VerticalAlignment="Center">
+                        <Border.Effect>
+                            <DropShadowEffect Color="#FF3B4E" Opacity="0.55" BlurRadius="14" ShadowDepth="2"/>
+                        </Border.Effect>
+                        <TextBlock Text="M" FontWeight="ExtraBold" FontSize="15" Foreground="White"
+                                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+
+                    <!-- "Majestic" rendered with a dotless-ı stem + a separately colored dot, so only
+                         the tittle is brand-red and the rest of the title stays white (see the
+                         dark-glass-ui skill note on why a plain red span was rejected). -->
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Margin="10,0,0,0">
+                        <TextBlock Text="Majest" Style="{StaticResource HeadingText}" FontSize="15"/>
+                        <Grid Width="7" Margin="0,-3,0,0">
+                            <Rectangle Width="2" Height="11" Fill="{StaticResource TextPrimaryBrush}"
+                                       HorizontalAlignment="Center" VerticalAlignment="Bottom"/>
+                            <Ellipse Width="5" Height="5" Fill="{StaticResource BrandGradientBrush}"
+                                     HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,1,0,0">
+                                <Ellipse.Effect>
+                                    <DropShadowEffect Color="#FF3B4E" Opacity="0.65" BlurRadius="6" ShadowDepth="0"/>
+                                </Ellipse.Effect>
+                            </Ellipse>
+                        </Grid>
+                        <TextBlock Text="c Assistant" Style="{StaticResource HeadingText}" FontSize="15"/>
+                    </StackPanel>
+
+                    <Button Grid.Column="2" Content="✕" Click="CloseGlyph_Click"
+                            ToolTip="Скрыть (Alt+Space)" Cursor="Hand"
+                            VerticalAlignment="Center" Background="Transparent" BorderThickness="0"
+                            Padding="4" FontSize="12" FontWeight="Bold"
+                            Foreground="{StaticResource TextBlueMutedBrush}">
+                        <!-- Flat text-only button: a real ButtonBase (not a bare TextBlock) so its own
+                             MouseLeftButtonDown is marked handled and doesn't get swallowed by the
+                             panel-level DragMove() handler used for repositioning the overlay. -->
+                        <Button.Template>
+                            <ControlTemplate TargetType="Button">
+                                <ContentPresenter/>
+                            </ControlTemplate>
+                        </Button.Template>
+                    </Button>
+                </Grid>
+
+                <!-- ===== Query row ===== -->
+                <Grid Margin="0,0,0,12">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <Grid Grid.Column="0" Margin="0,0,8,0">
+                        <TextBox x:Name="QueryInput" Style="{StaticResource QueryTextBox}"
+                                 AcceptsReturn="False" KeyDown="QueryInput_KeyDown"/>
+                        <TextBlock Text="Спросите про правила сервера…" Style="{StaticResource MetaText}"
+                                   FontWeight="SemiBold" IsHitTestVisible="False"
+                                   Margin="12,0,0,0" VerticalAlignment="Center">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock" BasedOn="{StaticResource MetaText}">
+                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding Text, ElementName=QueryInput}" Value="">
+                                            <Setter Property="Visibility" Value="Visible"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
+                    </Grid>
+
+                    <Button Grid.Column="1" Style="{StaticResource SendButton}" Content="→"
+                            Click="SendButton_Click"/>
+                </Grid>
+
+                <!-- ===== Answer area (placeholder — wired up to the RAG engine in a later stage) ===== -->
+                <Border x:Name="AnswerPanel" Style="{StaticResource GlassChip}" Padding="14,12">
+                    <TextBlock x:Name="AnswerText" Style="{StaticResource BodyText}" FontSize="13"
+                               TextWrapping="Wrap" LineHeight="20"
+                               Text="Здесь появится ответ ассистента. Поиск по базе знаний ещё не подключён — это только каркас интерфейса."/>
+                </Border>
+
+                <!-- ===== Footer hint ===== -->
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,14,0,0">
+                    <Border Style="{StaticResource KbdChip}">
+                        <TextBlock Text="Alt" FontFamily="{StaticResource MonoFont}" FontWeight="Bold" FontSize="11" Foreground="{StaticResource TextPrimaryBrush}"/>
+                    </Border>
+                    <TextBlock Text=" + " VerticalAlignment="Center" Margin="4,0" FontSize="11" Foreground="{StaticResource TextBlueMutedBrush}"/>
+                    <Border Style="{StaticResource KbdChip}">
+                        <TextBlock Text="Space" FontFamily="{StaticResource MonoFont}" FontWeight="Bold" FontSize="11" Foreground="{StaticResource TextPrimaryBrush}"/>
+                    </Border>
+                    <TextBlock Text=" скрыть / показать" VerticalAlignment="Center" Margin="6,0,0,0" FontSize="11" Foreground="{StaticResource TextBlueMutedBrush}"/>
+                </StackPanel>
+
+            </StackPanel>
+        </Border>
+    </Grid>
+</Window>
