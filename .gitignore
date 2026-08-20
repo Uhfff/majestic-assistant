@@ -6,8 +6,9 @@ obj/
 app/MajesticAssistant/cache/
 app/MajesticAssistant/settings.json
 
-# Downloaded manually (multi-hundred-MB GGML model for voice input) — see README
-app/MajesticAssistant/whisper/
+# Downloaded manually (multi-hundred-MB GGML model for voice input) — see README.
+# Only the model file itself is ignored, not the folder, so it still exists after a fresh clone.
+app/MajesticAssistant/whisper/*.bin
 
 # IDE
 .vs/
